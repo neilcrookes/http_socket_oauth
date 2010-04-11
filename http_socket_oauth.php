@@ -19,6 +19,11 @@ App::import('Core', 'HttpSocket');
  * require you to send additional params too. Include them in the
  * $request['auth'] array and they'll be passed on in the Authorization header
  * and considered when signing the request.
+ *
+ * @author Neil Crookes <neil@neilcrookes.com>
+ * @link http://www.neilcrookes.com
+ * @copyright (c) 2010 Neil Crookes
+ * @license MIT License - http://www.opensource.org/licenses/mit-license.php
  */
 class HttpSocketOauth extends HttpSocket {
 
