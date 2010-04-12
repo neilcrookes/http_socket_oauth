@@ -92,4 +92,4 @@ Finally, I guess it's useful to know how to do something with the twitter API wi
           $response = $Http->request($request);
 `
 
-Hope you like it. Any issues, please leave on github issue tracker. Any comments, let me know below. Thanks.
+Hope you like it. Any issues, please leave on github issue tracker. Any comments, let me know on my <a href="http://www.neilcrookes.com/2010/04/12/cakephp-oauth-extension-to-httpsocket/">blog</a>. Thanks.
