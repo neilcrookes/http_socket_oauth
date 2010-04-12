@@ -7,7 +7,7 @@ Usage instructions (we'll take twitter as an example):
 3. Note the consumer key and secret (I add them to Configure in bootstrap)
 
 4. Add the following to a controller:
-`
+
         public function twitter_connect() {
           // Get a request token from twitter
           App::import('Vendor', 'HttpSocketOauth');
@@ -30,13 +30,13 @@ Usage instructions (we'll take twitter as an example):
           parse_str($response, $response);
           $this->redirect('http://api.twitter.com/oauth/authorize?oauth_token=' . $response['oauth_token']);
         }
-`
-... replacing <enter your callback url here> with your callback url, i.e. the URL of the page in your application that twitter will redirect the user back to, after they have authorised your application to access their account. In this example, it's the url of the action in the next step. (Note, when you register your app, if you are developing locally, and you tried to enter your callback url with localhost in it, twitter might grumble. A little gem I read somewhere said you can actually create a bit.ly link, add your local callback URL in there, and then add the bit.ly link as the call back url in the twitter application settings. I still add my localhost url in this place though).
 
-This action fetches a request token from twitter, which it then adds as a query string param to the authorize URL on twitter.com that the user is redirected that prompts them to authorise your app.
+    ... replacing <enter your callback url here> with your callback url, i.e. the URL of the page in your application that twitter will redirect the user back to, after they have authorised your application to access their account. In this example, it's the url of the action in the next step. (Note, when you register your app, if you are developing locally, and you tried to enter your callback url with localhost in it, twitter might grumble. A little gem I read somewhere said you can actually create a bit.ly link, add your local callback URL in there, and then add the bit.ly link as the call back url in the twitter application settings. I still add my localhost url in this place though).
+
+    This action fetches a request token from twitter, which it then adds as a query string param to the authorize URL on twitter.com that the user is redirected that prompts them to authorise your app.
 
 5. Next add the action for the call back:
-`
+
         public function twitter_callback() {
           App::import('Vendor', 'HttpSocketOauth');
           $Http = new HttpSocketOauth();
@@ -60,15 +60,15 @@ This action fetches a request token from twitter, which it then adds as a query 
           // Save data in $response to database or session as it contains the access token and access token secret that you'll need later to interact with the twitter API
           $this->Session->write('Twitter', $response);
         }
-`
-After the user authorises your app, twitter redirects them back to this action, the callback you specified in the previous request. In the querystring are 2 params called 'oauth_token' and 'oauth_verifier'. These, and the consumer key and secret are then sent back to twitter, this time requesting an access token.
 
-At the end of this action, $response contains an associative array with keys for: 'oauth\_token', 'oauth\_token\_secret', 'user\_id', 'screen\_name'. You should save 'oauth\_token' and 'oauth\_token\_secret' to the session or the database as you need them when you want to access the Twitter API. Then redirect the user to another action, or display a thanks message or tweet to their account or whatever.
+    After the user authorises your app, twitter redirects them back to this action, the callback you specified in the previous request. In the querystring are 2 params called 'oauth_token' and 'oauth_verifier'. These, and the consumer key and secret are then sent back to twitter, this time requesting an access token.
+
+    At the end of this action, $response contains an associative array with keys for: 'oauth\_token', 'oauth\_token\_secret', 'user\_id', 'screen\_name'. You should save 'oauth\_token' and 'oauth\_token\_secret' to the session or the database as you need them when you want to access the Twitter API. Then redirect the user to another action, or display a thanks message or tweet to their account or whatever.
 
 Now if you link to the twitter_connect() action or hit it in your browser address bar, you should be directed off to twitter to authorise your application, and once done, be back within your app with some twitter accounts access tokens.
 
 Finally, I guess it's useful to know how to do something with the twitter API with this new found power:
-`
+
           App::import('Vendor', 'HttpSocketOauth');
           $Http = new HttpSocketOauth();
           // Tweet "Hello world!" to the twitter account we connected earlier
@@ -90,6 +90,6 @@ Finally, I guess it's useful to know how to do something with the twitter API wi
             ),
           );
           $response = $Http->request($request);
-`
+
 
 Hope you like it. Any issues, please leave on github issue tracker. Any comments, let me know on my <a href="http://www.neilcrookes.com/2010/04/12/cakephp-oauth-extension-to-httpsocket/">blog</a>. Thanks.
