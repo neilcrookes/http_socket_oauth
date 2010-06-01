@@ -52,7 +52,7 @@ class HttpSocketOauth extends HttpSocket {
     if (!isset($request['auth']['method']) || $request['auth']['method'] != 'OAuth') {
       return parent::request($request);
     }
-    
+
     $request['auth'] = array_merge($this->defaults, $request['auth']);
 
     // Nonce, or number used once is used to distinguish between different
@@ -67,26 +67,20 @@ class HttpSocketOauth extends HttpSocket {
 
     // Now starts the process of signing the request. The signature is a hash of
     // a signature base string with the secret keys. The signature base string
-    // is made up of the request http verb, the request uri and the request 
-    // params, and the secret keys are the consumer secret (for your 
-    // application) and the access token secret generated for the user by the 
+    // is made up of the request http verb, the request uri and the request
+    // params, and the secret keys are the consumer secret (for your
+    // application) and the access token secret generated for the user by the
     // provider, e.g. twitter, when the user authorizes your app to access their
     // details.
 
-    // Building the request uri, note we don't include the query string or 
+    // Building the request uri, note we don't include the query string or
     // fragment. Standard ports must not be included but non standard ones must.
     $uriFormat = '%scheme://%host';
     if (isset($request['uri']['port']) && !in_array($request['uri']['port'], array(80, 443))) {
       $uriFormat .= ':' . $request['uri']['port'];
     }
     $uriFormat .= '/%path';
-    $requestUrl = $this->buildUri($request['uri'], $uriFormat);
-
-    // The realm oauth_ param is optional, but you can include it and use the
-    // request uri as the value if it's not already set
-    if (!isset($request['auth']['realm'])) {
-      $request['auth']['realm'] = $requestUrl;
-    }
+    $requestUrl = $this->_buildUri($request['uri'], $uriFormat);
 
     // OAuth reference states that the request params, i.e. oauth_ params, body
     // params and query string params need to be normalised, i.e. combined in a
@@ -105,8 +99,9 @@ class HttpSocketOauth extends HttpSocket {
       array_flip(array('realm', 'method', 'oauth_consumer_secret', 'oauth_token_secret'))
     ));
 
-    // Next add the body params.
-    if (isset($request['body'])) {
+    // Next add the body params if there are any and the content type header is
+    // not set, or it's application/x-www-form-urlencoded
+    if (isset($request['body']) && (!isset($request['header']['Content-Type']) || stristr($request['header']['Content-Type'], 'application/x-www-form-urlencoded'))) {
       $requestParams = array_merge($requestParams, $this->assocToNumericNameValue($request['body']));
     }
 
@@ -157,33 +152,40 @@ class HttpSocketOauth extends HttpSocket {
         // @todo implement the other 2 hashing methods
         break;
     }
-    
+
     // Finally, we have all the Authorization header parameters so we can build
     // the header string.
-    $request['header']['Authorization'] = 'OAuth realm="' . $request['auth']['realm'] . '"';
+    $request['header']['Authorization'] = 'OAuth';
 
     // We don't want to include the realm, method or secrets though
     $authorizationHeaderParams = array_diff_key(
       $request['auth'],
-      array_flip(array('realm', 'method', 'oauth_consumer_secret', 'oauth_token_secret'))
+      array_flip(array('method', 'oauth_consumer_secret', 'oauth_token_secret'))
     );
 
     // Add the Authorization header params to the Authorization header string,
     // properly encoded.
+    $first = true;
     foreach ($authorizationHeaderParams as $name => $value) {
-      $request['header']['Authorization'] .= ',' . $this->authorizationHeaderParamEncode($name, $value);
+      if (!$first) {
+        $request['header']['Authorization'] .= ',';
+      } else {
+        $request['header']['Authorization'] .= ' ';
+        $first = false;
+      }
+      $request['header']['Authorization'] .= $this->authorizationHeaderParamEncode($name, $value);
     }
 
     // Now the Authorization header is built, fire the request off to the parent
     // HttpSocket class request method that we intercepted earlier.
     return parent::request($request);
-    
+
   }
 
   /**
    * Builds an Authorization header param string from the supplied name and
    * value. See below for example:
-   * 
+   *
    * @param string $name E.g. 'oauth_signature_method'
    * @param string $value E.g. 'HMAC-SHA1'
    * @return string E.g. 'oauth_signature_method="HMAC-SHA1"'
@@ -214,7 +216,7 @@ class HttpSocketOauth extends HttpSocket {
    * User defined function to lexically sort an array of
    * array('name' => '<name>', 'value' => '<value>') elements by the value of
    * the name key, and if they're the same, then by the value of the value key.
-   * 
+   *
    * @param array $a Array with key for 'name' and one for 'value'
    * @param array $b Array with key for 'name' and one for 'value'
    * @return integer 1, 0 or -1 depending on whether a greater than b, less than
