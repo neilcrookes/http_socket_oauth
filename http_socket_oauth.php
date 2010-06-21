@@ -119,15 +119,15 @@ class HttpSocketOauth extends HttpSocket {
       if ($k) {
         $normalisedRequestParams .= '&';
       }
-      $normalisedRequestParams .= $requestParam['name'] . '=' . rawurlencode(utf8_encode($requestParam['value']));
+      $normalisedRequestParams .= $requestParam['name'] . '=' . $this->parameterEncode($requestParam['value']);
     }
 
     // The signature base string consists of the request method (uppercased) and
     // concatenated with the request URL and normalised request parameters
     // string, both encoded, and separated by &
     $signatureBaseString = strtoupper($request['method']) . '&'
-                         . rawurlencode(utf8_encode($requestUrl)) . '&'
-                         . rawurlencode(utf8_encode($normalisedRequestParams));
+                         . $this->parameterEncode($requestUrl) . '&'
+                         . $this->parameterEncode($normalisedRequestParams);
 
     // The signature base string is hashed with a key which is the consumer
     // secret (assigned to your application by the provider) and the token
@@ -135,11 +135,11 @@ class HttpSocketOauth extends HttpSocket {
     // both encoded and separated by an &
     $key = '';
     if (isset($request['auth']['oauth_consumer_secret'])) {
-      $key .= rawurlencode(utf8_encode($request['auth']['oauth_consumer_secret']));
+      $key .= $this->parameterEncode($request['auth']['oauth_consumer_secret']);
     }
     $key .= '&';
     if (isset($request['auth']['oauth_token_secret'])) {
-      $key .= rawurlencode(utf8_encode($request['auth']['oauth_token_secret']));
+      $key .= $this->parameterEncode($request['auth']['oauth_token_secret']);
     }
 
     // Finally construct the signature according to the value of the
@@ -191,7 +191,7 @@ class HttpSocketOauth extends HttpSocket {
    * @return string E.g. 'oauth_signature_method="HMAC-SHA1"'
    */
   function authorizationHeaderParamEncode($name, $value) {
-    return rawurlencode(utf8_encode($name)) . '="' . rawurlencode(utf8_encode($value)) . '"';
+    return $this->parameterEncode($name) . '="' . $this->parameterEncode($value) . '"';
   }
 
   /**
@@ -230,6 +230,24 @@ class HttpSocketOauth extends HttpSocket {
       return ($a['value'] > $b['value']) ? 1 : -1;
     }
     return ($a['name'] > $b['name']) ? 1 : -1;
+  }
+
+  /**
+   * Encodes paramters as per the OAuth spec by utf 8 encoding the param (if it
+   * is not already utf 8 encoded) and then percent encoding it according to
+   * RFC3986
+   *
+   * @param string $param
+   * @return string
+   */
+  function parameterEncode($param) {
+    $encoding = mb_detect_encoding($param);
+    if ($encoding != 'UTF-8') {
+      $param = mb_convert_encoding($param, 'UTF-8', $encoding);
+    }
+    $param = rawurlencode($param);
+    $param = str_replace('%7E', '~', $param);
+    return $param;
   }
 
 }
