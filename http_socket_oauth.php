@@ -53,6 +53,46 @@ class HttpSocketOauth extends HttpSocket {
       return parent::request($request);
     }
 
+    // Generate the OAuth Authorization Header content for this request from the
+    // request data and add it into the request's Authorization Header. Note, we
+    // don't just add the header directly in the request variable and return the
+    // whole thing from the authorizationHeader() method because in some cases
+    // we may not want the authorization header content in the request's
+    // authorization header, for example, OAuth Echo as used by Twitpic and
+    // Twitter includes an Authorization Header as required by twitter's verify
+    // credentials API in the X-Verify-Credentials-Authorization header.
+    $request['header']['Authorization'] = $this->authorizationHeader($request);
+
+    // Now the Authorization header is built, fire the request off to the parent
+    // HttpSocket class request method that we intercepted earlier.
+    return parent::request($request);
+
+  }
+
+  /**
+   * Returns the OAuth Authorization Header string for a given request array.
+   *
+   * This method is called by request but can also be called directly, which is
+   * useful if you need to get the OAuth Authorization Header string, such as
+   * when integrating with a service that uses OAuth Echo (Authorization
+   * Delegation) e.g. Twitpic. In this case you send a normal unauthenticated
+   * request to the service e.g. Twitpic along with 2 extra headers:
+   * - X-Auth-Service-Provider - effectively, this is the realm that identity
+   *   delegation should be sent to - in the case of Twitter, just set this to
+   *   https://api.twitter.com/1/account/verify_credentials.json;
+   * - X-Verify-Credentials-Authorization - Consumer should create all the OAuth
+   *   parameters necessary so it could call
+   *   https://api.twitter.com/1/account/verify_credentials.json using OAuth in
+   *   the HTTP header (e.g. it should look like OAuth oauth_consumer_key="...",
+   *   oauth_token="...", oauth_signature_method="...", oauth_signature="...",
+   *   oauth_timestamp="...", oauth_nonce="...", oauth_version="...".
+   * 
+   * @param array $request As required by HttpSocket::request(). NOTE ONLY
+   *   THE ARRAY TYPE OF REQUEST IS SUPPORTED
+   * @return String
+   */
+  function authorizationHeader($request) {
+
     $request['auth'] = array_merge($this->defaults, $request['auth']);
 
     // Nonce, or number used once is used to distinguish between different
@@ -155,30 +195,34 @@ class HttpSocketOauth extends HttpSocket {
 
     // Finally, we have all the Authorization header parameters so we can build
     // the header string.
-    $request['header']['Authorization'] = 'OAuth';
+    $authorizationHeader = 'OAuth';
 
     // We don't want to include the realm, method or secrets though
     $authorizationHeaderParams = array_diff_key(
       $request['auth'],
-      array_flip(array('method', 'oauth_consumer_secret', 'oauth_token_secret'))
+      array_flip(array('method', 'oauth_consumer_secret', 'oauth_token_secret', 'realm'))
     );
 
     // Add the Authorization header params to the Authorization header string,
     // properly encoded.
     $first = true;
-    foreach ($authorizationHeaderParams as $name => $value) {
-      if (!$first) {
-        $request['header']['Authorization'] .= ',';
-      } else {
-        $request['header']['Authorization'] .= ' ';
-        $first = false;
-      }
-      $request['header']['Authorization'] .= $this->authorizationHeaderParamEncode($name, $value);
+
+    if (isset($request['auth']['realm'])) {
+      $authorizationHeader .= ' realm="' . $request['auth']['realm'] . '"';
+      $first = false;
     }
 
-    // Now the Authorization header is built, fire the request off to the parent
-    // HttpSocket class request method that we intercepted earlier.
-    return parent::request($request);
+    foreach ($authorizationHeaderParams as $name => $value) {
+      if (!$first) {
+        $authorizationHeader .= ',';
+      } else {
+        $authorizationHeader .= ' ';
+        $first = false;
+      }
+      $authorizationHeader .= $this->authorizationHeaderParamEncode($name, $value);
+    }
+
+    return $authorizationHeader;
 
   }
 
