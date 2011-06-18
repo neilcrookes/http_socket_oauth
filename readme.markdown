@@ -10,7 +10,7 @@ Usage instructions (we'll take twitter as an example):
 
         public function twitter_connect() {
           // Get a request token from twitter
-          App::import('Vendor', 'HttpSocketOauth');
+          App::import('Lib', 'HttpSocketOauth.HttpSocketOauth');
           $Http = new HttpSocketOauth();
           $request = array(
             'uri' => array(
@@ -38,7 +38,7 @@ Usage instructions (we'll take twitter as an example):
 5. Next add the action for the call back:
 
         public function twitter_callback() {
-          App::import('Vendor', 'HttpSocketOauth');
+          App::import('Lib', 'HttpSocketOauth.HttpSocketOauth');
           $Http = new HttpSocketOauth();
           // Issue request for access token
           $request = array(
@@ -69,7 +69,7 @@ Now if you link to the twitter_connect() action or hit it in your browser addres
 
 Finally, I guess it's useful to know how to do something with the twitter API with this new found power:
 
-          App::import('Vendor', 'HttpSocketOauth');
+          App::import('Lib', 'HttpSocketOauth.HttpSocketOauth');
           $Http = new HttpSocketOauth();
           // Tweet "Hello world!" to the twitter account we connected earlier
           $request = array(
