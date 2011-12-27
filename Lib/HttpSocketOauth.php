@@ -36,6 +36,30 @@ class HttpSocketOauth extends HttpSocket {
 		'oauth_signature_method' => 'HMAC-SHA1',
 	);
 
+	public $request = array(
+		'method' => 'GET',
+		'uri' => array(
+			'scheme' => 'http',
+			'host' => null,
+			'port' => 80,
+			'user' => null,
+			'pass' => null,
+			'path' => null,
+			'query' => null,
+			'fragment' => null
+		),
+		'version' => '1.1',
+		'body' => '',
+		'line' => null,
+		'header' => array(
+			'Connection' => 'close',
+			'User-Agent' => 'CakePHP'
+		),
+		'raw' => null,
+		'cookies' => array(),
+		'auth' => array(),
+	);
+
 	/**
 	 * Overrides HttpSocket::request() to handle cases where
 	 * $request['auth']['method'] is 'OAuth'.
