@@ -1,5 +1,5 @@
 <?php
-App::import('Core', 'HttpSocket');
+App::uses('HttpSocket', 'Network/Http');
 
 /**
  * Extension to CakePHP core HttpSocket class that overrides the request method
