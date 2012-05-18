@@ -120,7 +120,11 @@ class HttpSocketOauth extends HttpSocket {
       $uriFormat .= ':' . $request['uri']['port'];
     }
     $uriFormat .= '/%path';
-    $requestUrl = $this->_buildUri($request['uri'], $uriFormat);
+    if (strpos(Configure::version(), "1.2") == 0) {
+	$requestUrl = $this->buildUri($request['uri'], $uriFormat);
+    } else {
+	$requestUrl = $this->_buildUri($request['uri'], $uriFormat);
+    }
 
     // OAuth reference states that the request params, i.e. oauth_ params, body
     // params and query string params need to be normalised, i.e. combined in a
