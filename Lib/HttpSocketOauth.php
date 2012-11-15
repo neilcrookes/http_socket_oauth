@@ -84,7 +84,11 @@ class HttpSocketOauth extends HttpSocket {
 		// authorization header, for example, OAuth Echo as used by Twitpic and
 		// Twitter includes an Authorization Header as required by twitter's verify
 		// credentials API in the X-Verify-Credentials-Authorization header.
-		$request['header']['Authorization'] = $this->authorizationHeader($request);
+		if (isset($request['auth']['oauth_version']) && $request['auth']['oauth_version'] == '2.0'){
+	        	$request['header']['Authorization'] = $this->authorizationHeaderV2($request);
+	        }else{
+	        	$request['header']['Authorization'] = $this->authorizationHeader($request);
+	        }
 
 		// Now the Authorization header is built, fire the request off to the parent
 		// HttpSocket class request method that we intercepted earlier.
@@ -247,6 +251,24 @@ class HttpSocketOauth extends HttpSocket {
 
 		return $authorizationHeader;
 	}
+	
+	/**
+	 * Returns the OAuth V2 Authorization Header string for a given request array
+	 * Old V1 params weren't accepted and returned error. 
+	 *
+	 * @param array $request As required by HttpSocket::request(). NOTE ONLY
+	 *   THE ARRAY TYPE OF REQUEST IS SUPPORTED
+	 * @return String
+	 * @author Javier Rocamora
+	 * @todo Check if other params are needed and build correctly
+	 */
+	public function authorizationHeaderV2($request) {
+	
+	        $authorizationHeader = 'OAuth ';
+	        $authorizationHeader .= $request['auth']['access_token'];
+	
+	        return $authorizationHeader;
+	    }
 
 	/**
 	 * Builds an Authorization header param string from the supplied name and
