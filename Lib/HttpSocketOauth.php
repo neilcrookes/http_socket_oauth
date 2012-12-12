@@ -291,12 +291,14 @@ class HttpSocketOauth extends HttpSocket {
 	 */
 	public function assocToNumericNameValue($array) {
 		$return = array();
-		foreach ($array as $name => $value) {
-			$return[] = array(
-				'name' => $name,
-				'value' => $value,
-			);
-		}
+                if (is_array($array) AND !empty($array)) {
+                        foreach ($array as $name => $value) {
+                                $return[] = array(
+                                        'name' => $name,
+                                        'value' => $value,
+                                );
+                        }
+                }
 		return $return;
 	}
 
