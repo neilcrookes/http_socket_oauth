@@ -120,7 +120,7 @@ class HttpSocketOauth extends HttpSocket {
       $uriFormat .= ':' . $request['uri']['port'];
     }
     $uriFormat .= '/%path';
-    if (strpos(Configure::version(), "1.2") == 0) {
+    if (strpos(Configure::version(), "1.2") === 0) {
 	$requestUrl = $this->buildUri($request['uri'], $uriFormat);
     } else {
 	$requestUrl = $this->_buildUri($request['uri'], $uriFormat);
